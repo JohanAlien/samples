@@ -1,31 +1,13 @@
 #!/bin/bash
-if ! type "unzip" > /dev/null; then
-  echo "Install unzip..."
 
-  NAME="wordpress - unzip"
-  LOCK="/tmp/lockaptget"
+# re-synchronize the package index files
+sudo apt-get update || (sleep 15; sudo apt-get update || exit ${1})
 
-  while true; do
-    if mkdir "${LOCK}" &>/dev/null; then
-      echo "$NAME take apt lock"
-      break;
-    fi
-    echo "$NAME waiting apt lock to be released..."
-    sleep 0.5
-  done
+echo "Checking if Aptdaemon is installed..."
+command aptdcon > /dev/null 2>&1 || { echo >&2 "Aptdaemon is required but it's not installed."; sudo apt-get -y install aptdaemon; }
 
-  while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
-    echo "$NAME waiting for other software managers to finish..."
-    sleep 0.5
-  done
-
-  sudo rm -f /var/lib/dpkg/lock
-  sudo apt-get update || (sleep 15; sudo apt-get update || exit ${1})
-  sudo apt-get install unzip || exit ${1}
-
-  rm -rf "${LOCK}"
-  echo "$NAME released apt lock"
-fi
+echo "Checking if Unzip is installed..."
+command unzip > /dev/null 2>&1 || { echo >&2 "Unzip is required but it's not installed."; yes|sudo aptdcon --install unzip; }
 
 if [ "$WEBFILE_URL" ]; then
   echo "Deploy from URL..."
