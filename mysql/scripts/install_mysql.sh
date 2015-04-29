@@ -1,13 +1,23 @@
 #!/bin/bash
 
-echo "Debian based MYSQL install 5..."
+echo "Debian based MYSQL install..."
 
-sudo apt-get update || (sleep 15; sudo apt-get update || exit ${1})
+command -v aptdcon
+if [ ! $? -eq 0 ]; then
+   echo "Aptdaemon is required but it's not installed."
+   a=1
+   until [ $a -eq "0" ]; do
+      echo "Installing Aptdaemon..."
+      sudo aptitude -y install aptdaemon
+      a=$?
+      sleep 5
+   done
+fi
 
-echo "Checking if Aptdaemon is installed..."
-command aptdcon > /dev/null 2>&1 || { echo >&2 "Aptdaemon is required but it's not installed."; sudo apt-get -y install aptdaemon; }
+#echo "Checking if Aptdaemon is installed..."
+#command aptdcon > /dev/null 2>&1 || { echo >&2 "Aptdaemon is required but it's not installed."; sudo apt-get -y install aptdaemon; }
 
-yes|sudo DEBIAN_FRONTEND=noninteractive aptdcon --install mysql-server-5.5 pwgen || exit ${1}
+yes|sudo DEBIAN_FRONTEND=noninteractive aptdcon --allow-unauthenticated --install mysql-server-5.5 pwgen || exit ${1}
 
 sudo /etc/init.d/mysql stop
 sudo rm -rf /var/lib/apt/lists/*
